@@ -61,8 +61,9 @@ parser.add_argument("--gradient-round", default="nearest",
 parser.add_argument("--activation-round", default="nearest",
                     choices=rounding_options_choices, help='activation rounding method')
 parser.add_argument("--checkpoint-path", default=None, help='checkpoint path')
-parser.add_argument("--mix-precision", type=lambda x: x ==
-                    "True", default=True, help='is mix precision train')
+parser.add_argument("--log-path", default="mix_precision_log", help='log path')
+parser.add_argument("--epochs", type=int, default=100, help='epochs')
+parser.add_argument("--mix-precision", type=lambda x: x=="True",default=True, help='is mix precision train')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -199,7 +200,7 @@ def cli_main():
     model = LitClassifier(args)
     print(args)
     logger = TensorBoardLogger(
-        "mix_precision_test", name=make_version_name(args), )
+        args.log_path, name=make_version_name(args), )
     trainer = L.Trainer(accelerator="gpu", max_epochs=100,
                         logger=logger, enable_progress_bar=True)
     datamodule = MyDataModule(args.batch_size)

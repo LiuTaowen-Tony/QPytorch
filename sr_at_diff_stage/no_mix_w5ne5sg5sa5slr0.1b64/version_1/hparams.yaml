@@ -1,0 +1,16 @@
+args: !!python/object:argparse.Namespace
+  activation_bw: 5
+  activation_round: stochastic
+  batch_size: 64
+  checkpoint_path: null
+  epochs: 100
+  error_bw: 5
+  error_round: stochastic
+  gradient_bw: 5
+  gradient_round: stochastic
+  learning_rate: 0.1
+  log_path: sr_at_diff_stage
+  mix_precision: false
+  momentum: 0.0
+  weight_bw: 5
+  weight_round: nearest
