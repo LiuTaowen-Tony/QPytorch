@@ -1,0 +1,21 @@
+args: !!python/object:argparse.Namespace
+  activation_bw: 3
+  activation_ew: 5
+  activation_round: stochastic
+  batch_size: 64
+  checkpoint_path: null
+  epochs: 150
+  error_bw: 3
+  error_ew: 5
+  error_round: stochastic
+  gradient_bw: 3
+  gradient_ew: 5
+  gradient_round: stochastic
+  learning_rate: 0.1
+  log_path: loss_scale_log
+  loss_scale: 1024
+  mix_precision: true
+  momentum: 0.0
+  weight_bw: 3
+  weight_ew: 5
+  weight_round: stochastic

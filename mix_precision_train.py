@@ -96,9 +96,6 @@ class LitClassifier(LightningModule):
         self.automatic_optimization = False
         self.save_hyperparameters(ignore=["backbone"])
 
-    def _make_float(self, mantissa_bit_width: Optional[int] = None):
-        return FloatingPoint(exp=8, man=mantissa_bit_width)
-
     def forward(self, x):
         # use forward for inference/predictions
         return self.backbone(x)
