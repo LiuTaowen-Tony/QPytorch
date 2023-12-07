@@ -18,6 +18,7 @@ for run in 0 1 2; do
 	# fi
 	CUDA_VISIBLE_DEVICES=$run python mix_precision_train.py \
 		-w $man_width -e $man_width -g $man_width -a $man_width \
+		--seed $run \
 		--weight-ew $fw_exp_width \
 		--error-ew $bk_exp_width \
 		--gradient-ew $fw_exp_width \

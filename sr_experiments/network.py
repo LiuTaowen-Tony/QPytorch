@@ -6,41 +6,51 @@ def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
+# class Probe(nn.Module):
+#     def __init__(self, module: nn.Module):
+#         super().__init__()
+#         self.act_cache = None
+#         self.module = module
+#         self.act_no_detach_cache = None
+
+#     def clean(self):
+#         self.act_cache = None
+#         self.act_no_detach_cache = None
+
+#     def forward(self, x):
+#         out = self.module(x)
+#         if self.act_no_detach_cache is None and out.requires_grad:
+#             out.retain_grad()
+#             self.act_no_detach_cache = out
+#         if self.act_cache is None and out.requires_grad:
+#             self.act_cache = out.detach().clone()
+#         return out
+
+#     def probe_weight(self):
+#         return self.module.weight.data.detach().clone()
+
+#     def probe_activation(self):
+#         temp = self.act_cache
+#         self.act_cache = None
+#         return temp
+
+#     def probe_grad(self):
+#         return self.module.weight.grad.data.detach().clone()
+
+#     def probe_err(self):
+#         temp = self.act_no_detach_cache
+#         self.act_no_detach_cache = None
+#         return temp.grad.data.detach().clone()
+    
+
 class Probe(nn.Module):
-    def __init__(self, module: nn.Module):
-        super().__init__()
-        self.act_cache = None
-        self.module = module
-        self.act_no_detach_cache = None
-
-    def clean(self):
-        self.act_cache = None
-        self.act_no_detach_cache = None
-
     def forward(self, x):
-        out = self.module(x)
-        if self.act_no_detach_cache is None and out.requires_grad:
-            out.retain_grad()
-            self.act_no_detach_cache = out
-        if self.act_cache is None and out.requires_grad:
-            self.act_cache = out.detach().clone()
-        return out
+        return self.module(x)
 
-    def probe_weight(self):
-        return self.module.weight.data.detach().clone()
+    def __init__(self, module) -> None:
+        super().__init__()
+        self.module = module
 
-    def probe_activation(self):
-        temp = self.act_cache
-        self.act_cache = None
-        return temp
-
-    def probe_grad(self):
-        return self.module.weight.grad.data.detach().clone()
-
-    def probe_err(self):
-        temp = self.act_no_detach_cache
-        self.act_no_detach_cache = None
-        return temp.grad.data.detach().clone()
     
 
 class BasicBlock(nn.Module):
@@ -49,7 +59,7 @@ class BasicBlock(nn.Module):
     def __init__(self, inplanes, planes, quant, stride=1, downsample=None):
         super(BasicBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(inplanes)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
         self.probe = Probe(conv3x3(inplanes, planes, stride))
         self.bn2 = nn.BatchNorm2d(planes)
         self.conv2 = conv3x3(planes, planes)
@@ -75,7 +85,7 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             residual = self.downsample(x)
 
-        out += residual
+        out = out + residual
         out = self.quant(out)
 
         return out
@@ -97,7 +107,7 @@ class PreResNet(nn.Module):
         self.layer2 = self._make_layer(block, 32, n, quant, stride=2)
         self.layer3 = self._make_layer(block, 64, n, quant, stride=2)
         self.bn = nn.BatchNorm2d(64 * block.expansion)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
         self.avgpool = nn.AvgPool2d(8)
         self.fc = nn.Linear(64 * block.expansion, num_classes)
         self.quant = quant()

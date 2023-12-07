@@ -11,6 +11,7 @@ rounding_options_choices = ["nearest", "stochastic", ]
 
 parser = argparse.ArgumentParser(description=' Example')
 parser.add_argument('-b', "--batch-size", type=int, default=128, help='batch size')
+parser.add_argument("--do-not-quant", type=int, default=128, help='batch size')
 parser.add_argument('-l', "--learning-rate", type=float, default=0.1, help='learning rate')
 parser.add_argument('-m', "--momentum", type=float, default=0, help='momentum')
 parser.add_argument('-w', "--weight-bw", type=int, default=3, help='mantissa bit width for weight')

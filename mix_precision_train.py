@@ -63,6 +63,8 @@ parser.add_argument("--activation-round", default="nearest",
 parser.add_argument("--checkpoint-path", default=None, help='checkpoint path')
 parser.add_argument("--log-path", default="mix_precision_log", help='log path')
 parser.add_argument("--epochs", type=int, default=100, help='epochs')
+parser.add_argument("--seed", type=int, default=0, help='seed')
+parser.add_argument("--check-number-ranges", type=lambda x: x=="True", default=False, help='track model and check number ranges')
 parser.add_argument("--mix-precision", type=lambda x: x=="True",default=True, help='is mix precision train')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -191,9 +193,21 @@ def make_version_name(args):
         f"b{args.batch_size}"
     )
 
+def track_grad_norm(args):
+    import tensor_tracker
+    model = LitClassifier(args)
+    datamodule = MyDataModule(args.batch_size)
+    datamodule = datamodule.train_dataloader()
+    batch = next(iter(datamodule))
+    with tensor_tracker.Tracker() as tracker:
+        model.train_step(batch, 0).backward()
+    print(tracker)
+    
+
 
 def cli_main():
     args = parser.parse_args()
+    torch.manual_seed(parser.seed)
     model = LitClassifier(args)
     print(args)
     logger = TensorBoardLogger(
