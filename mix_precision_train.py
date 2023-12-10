@@ -66,6 +66,7 @@ parser.add_argument("--epochs", type=int, default=100, help='epochs')
 parser.add_argument("--seed", type=int, default=0, help='seed')
 parser.add_argument("--check-number-ranges", type=lambda x: x=="True", default=False, help='track model and check number ranges')
 parser.add_argument("--mix-precision", type=lambda x: x=="True",default=True, help='is mix precision train')
+parser.add_argument("--clip", type=float, default=1, help='gradient clip')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -141,6 +142,7 @@ class LitClassifier(LightningModule):
                  on_step=True, prog_bar=True)
         loss = loss * args.loss_scale
         opt = self.optimizers()
+        torch.nn.utils.clip_grad_norm_(self.backbone.parameters(), args.clip)
         self.backbone.zero_grad()
         self.manual_backward(loss)
         if args.mix_precision:
@@ -191,6 +193,7 @@ def make_version_name(args):
         f"a{args.activation_bw}{args.activation_ew}{args.activation_round[0]}"
         f"lr{args.learning_rate}"
         f"b{args.batch_size}"
+        f"clip{args.clip}"
     )
 
 def track_grad_norm(args):
@@ -207,7 +210,7 @@ def track_grad_norm(args):
 
 def cli_main():
     args = parser.parse_args()
-    torch.manual_seed(parser.seed)
+    torch.manual_seed(args.seed)
     model = LitClassifier(args)
     print(args)
     logger = TensorBoardLogger(
