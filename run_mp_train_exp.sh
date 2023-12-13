@@ -2,14 +2,15 @@
 round=stochastic
 source .venv/bin/activate
 
+clip=100000000000000
+
 
 for man_width in 3; do
-for loss_scale in 250 500 1000 1500 2000 3000 4000 5000 6000 7000 8000; do
-for clip in 10 5 1 0.5 0.1 ; do
+for loss_scale in 1 5 10 25 50 75 100 150 200 250; do
 for batch_size in 64; do
 for lr in 0.1; do
 for bk_exp_width in 4; do
-for fw_exp_width in 2; do
+for fw_exp_width in 2 3; do
 for run in 0 1 2; do
 for round2 in stochastic nearest ; do
 	CUDA_VISIBLE_DEVICES=$run python mix_precision_train.py \
@@ -20,7 +21,7 @@ for round2 in stochastic nearest ; do
 		--gradient-ew $fw_exp_width \
 		--activation-ew $bk_exp_width \
 		--loss-scale $loss_scale \
-		--log-path f${fw_exp_width}_b${bk_exp_width}_log_${run}_clip \
+		--log-path logs/f${fw_exp_width}_b${bk_exp_width}_log_${run}_clip \
 		--seed $run \
 		--epochs 200 \
 		--weight-round $round2 \
@@ -41,4 +42,3 @@ done
 done
 done
 done 
-done

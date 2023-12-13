@@ -1,0 +1,24 @@
+args: !!python/object:argparse.Namespace
+  activation_bw: 3
+  activation_ew: 4
+  activation_round: stochastic
+  batch_size: 64
+  check_number_ranges: false
+  checkpoint_path: null
+  clip: 100000000000000.0
+  epochs: 200
+  error_bw: 3
+  error_ew: 4
+  error_round: stochastic
+  gradient_bw: 3
+  gradient_ew: 2
+  gradient_round: stochastic
+  learning_rate: 0.1
+  log_path: logs/f2_b4_log_1_clip
+  loss_scale: 200
+  mix_precision: true
+  momentum: 0.0
+  seed: 1
+  weight_bw: 3
+  weight_ew: 2
+  weight_round: stochastic
