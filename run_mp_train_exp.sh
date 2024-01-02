@@ -6,7 +6,7 @@ clip=100000000000000
 
 
 for man_width in 3; do
-for loss_scale in 1 5 10 25 50 75 100 150 200 250; do
+for loss_scale in 1 10 25 100 200 1000 2000 3000 5000 8000 16000 32000 64000 128000 256000 512000 1024000; do
 for batch_size in 64; do
 for lr in 0.1; do
 for bk_exp_width in 4; do
