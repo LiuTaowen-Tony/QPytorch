@@ -67,6 +67,7 @@ parser.add_argument("--seed", type=int, default=0, help='seed')
 parser.add_argument("--check-number-ranges", type=lambda x: x=="True", default=False, help='track model and check number ranges')
 parser.add_argument("--mix-precision", type=lambda x: x=="True",default=True, help='is mix precision train')
 parser.add_argument("--clip", type=float, default=1, help='gradient clip')
+parser.add_argument("--batchnorm", type=str, default="batchnorm", help='batchnorm')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -89,8 +90,11 @@ class LitClassifier(LightningModule):
         self.weight_quant = quant_funcs["weight_quant"]
         self.grad_quant = quant_funcs["grad_quant"]
         make_ae_quant = quant_funcs["make_ae_quant"]
-        self.backbone = PreResNet(make_ae_quant)
-        self.reference_model = PreResNet(lambda: Id())
+        norm = nn.BatchNorm2d
+        if args.batchnorm != "batchnorm":
+            norm = Id
+        self.backbone = PreResNet(make_ae_quant, norm=norm)
+        self.reference_model = PreResNet(lambda: Id(), norm =norm)
         if args.checkpoint_path:
             ckpt = torch.load(args.checkpoint_path)
             self.load_state_dict(ckpt["state_dict"])
