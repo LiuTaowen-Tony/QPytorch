@@ -1,8 +1,4 @@
-batch_size,learning_rate,momentum,loss_scale,weight_ew,error_ew,gradient_ew,activation_ew,weight_bw,error_bw,gradient_bw,activation_bw,weight_round,error_round,gradient_round,activation_round,checkpoint_path,log_path,epochs,seed,check_number_ranges,mix_precision,clip,batchnorm,test_loss
-128,0.1,0,1000,3,3,3,3,3,3,3,3,nearest,nearest,nearest,nearest,,mix_precision_log,100,0,False,True,1,batchnorm,test_acc
-128,0.1,0,1000,3,3,3,3,3,3,3,3,nearest,nearest,nearest,nearest,,mix_precision_log,100,0,False,True,1,batchnorm,test_acc
-128,0.1,0,1000,3,3,3,3,3,3,3,3,nearest,nearest,nearest,nearest,,mix_precision_log,100,0,False,True,1,batchnorm,3.0998618602752686,0.13609999418258667
-128,0.1,0,1000,3,3,3,3,3,3,3,3,nearest,nearest,nearest,nearest,,mix_precision_log,100,0,False,True,1,batchnorm,2.8275671005249023,0.1432799994945526
+batch_size,learning_rate,momentum,loss_scale,weight_ew,error_ew,gradient_ew,activation_ew,weight_bw,error_bw,gradient_bw,activation_bw,weight_round,error_round,gradient_round,activation_round,checkpoint_path,log_path,epochs,seed,check_number_ranges,mix_precision,clip,batchnorm,test_loss,test_acc
 64,0.1,0.0,1,2,4,2,4,3,3,3,3,nearest,nearest,nearest,nearest,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,id,2.3026037216186523,0.10000000149011612
 64,0.1,0.0,1,2,4,2,4,3,3,3,3,stochastic,stochastic,stochastic,stochastic,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,id,2.304215431213379,0.10000000149011612
 64,0.1,0.0,1,2,4,2,4,3,3,3,3,nearest,nearest,nearest,nearest,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,batchnorm,7.622947692871094,0.11993999779224396
@@ -29,3 +25,7 @@ batch_size,learning_rate,momentum,loss_scale,weight_ew,error_ew,gradient_ew,acti
 64,0.1,0.0,4000,2,4,2,4,3,3,3,3,stochastic,stochastic,stochastic,stochastic,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,batchnorm,1.0448850393295288,0.6168599724769592
 64,0.1,0.0,8000,2,4,2,4,3,3,3,3,nearest,nearest,nearest,nearest,,results_new_batchnorm_2/f2_b4_log_1_clip,200,1,False,True,100000000000000.0,id,7.0944743156433105,0.10000000149011612
 64,0.1,0.0,8000,2,4,2,4,3,3,3,3,stochastic,stochastic,stochastic,stochastic,,results_new_batchnorm_2/f2_b4_log_1_clip,200,1,False,True,100000000000000.0,id,2.1812033653259277,0.22657999396324158
+64,0.1,0.0,8000,2,4,2,4,3,3,3,3,nearest,nearest,nearest,nearest,,results_new_batchnorm_2/f2_b4_log_2_clip,200,2,False,True,100000000000000.0,shift_norm,2.2972700595855713,0.10000000149011612
+64,0.1,0.0,8000,2,4,2,4,3,3,3,3,nearest,nearest,nearest,nearest,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,batchnorm,0.529007613658905,0.8036800026893616
+64,0.1,0.0,8000,2,4,2,4,3,3,3,3,stochastic,stochastic,stochastic,stochastic,,results_new_batchnorm_2/f2_b4_log_2_clip,200,2,False,True,100000000000000.0,shift_norm,2.28651762008667,0.16502000391483307
+64,0.1,0.0,8000,2,4,2,4,3,3,3,3,stochastic,stochastic,stochastic,stochastic,,results_new_batchnorm_2/f2_b4_log_0_clip,200,0,False,True,100000000000000.0,batchnorm,1.0443586111068726,0.5962799787521362
