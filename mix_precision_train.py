@@ -21,7 +21,10 @@ import torch.nn.functional as F
 import argparse
 import lightning as L
 from utils import make_quant_func, Id
-import tensor_tracker
+import copy
+from track_tensor import visualise, instrument
+import csv
+
 
 
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -35,7 +38,7 @@ parser.add_argument('-b', "--batch-size", type=int,
 parser.add_argument('-l', "--learning-rate", type=float,
                     default=0.1, help='learning rate')
 parser.add_argument('-m', "--momentum", type=float, default=0, help='momentum')
-parser.add_argument("--loss-scale", type=int, default=1,
+parser.add_argument("--loss-scale", type=int, default=1000,
                     help='loss scaling factor, 1 for no scaling')
 parser.add_argument("--weight-ew", type=int, default=3,
                     help='exponent bit width for weight')
@@ -68,13 +71,25 @@ parser.add_argument("--seed", type=int, default=0, help='seed')
 parser.add_argument("--check-number-ranges", type=lambda x: x=="True", default=False, help='track model and check number ranges')
 parser.add_argument("--mix-precision", type=lambda x: x=="True",default=True, help='is mix precision train')
 parser.add_argument("--clip", type=float, default=1, help='gradient clip')
-parser.add_argument("--batchnorm", type=str, default="batchnorm", help='batchnorm')
+parser.add_argument("--batchnorm", type=str, default="id", help='batchnorm')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 args = parser.parse_args()
 
 from track_tensor import instrument
+
+
+class shift_norm(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+    
+    def forward(self, x: torch.Tensor):
+        min_representable = 2**(-8)
+        x_min = x.min()
+        scale = x_min / min_representable
+        return x * 4 / scale
+
 
 
 class LitClassifier(LightningModule):
@@ -93,15 +108,17 @@ class LitClassifier(LightningModule):
         self.weight_quant = quant_funcs["weight_quant"]
         self.grad_quant = quant_funcs["grad_quant"]
         make_ae_quant = quant_funcs["make_ae_quant"]
-        norm = nn.BatchNorm2d
-        if args.batchnorm != "batchnorm":
+        if args.batchnorm == "batchnorm":
+            norm = nn.BatchNorm2d
+        elif args.batchnorm == "shift_norm":
+            norm = shift_norm
+        else:
             norm = Id
         self.backbone = PreResNet(make_ae_quant, norm=norm)
         self.reference_model = PreResNet(lambda: Id(), norm =norm)
         if args.checkpoint_path:
             ckpt = torch.load(args.checkpoint_path)
             self.load_state_dict(ckpt["state_dict"])
-        self.stats = instrument(self.backbone)
         self._apply_model_weights(self.backbone, self.weight_quant)
         # self.backbone = torch.jit.trace(self.backbone, torch.rand(1, 3, 32, 32))
         self.automatic_optimization = False
@@ -144,6 +161,14 @@ class LitClassifier(LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
+        if self.trainer.is_last_batch:
+            m = copy.deepcopy(self.backbone)
+            stats = instrument(m)
+            y_hat =m(x)
+            loss = F.cross_entropy(y_hat, y)
+            loss = loss * args.loss_scale
+            loss.backward()
+            visualise(stats, dir=f"{args.log_path}/{make_version_name(self.args)}/test{self.current_epoch}.png")
         y_hat = self.backbone(x)
         loss = F.cross_entropy(y_hat, y)
         self.log("train_loss", loss, on_epoch=True,
@@ -219,7 +244,13 @@ def cli_main():
     datamodule = MyDataModule(args.batch_size)
     # trainer.test(model, datamodule=datamodule)
     trainer.fit(model, datamodule=datamodule)
-    trainer.test(ckpt_path="best", datamodule=datamodule)
+    result, *_ = trainer.test(ckpt_path="best", dataloaders=datamodule.train_dataloader())
+    with open(f"result.csv", "a+") as f:
+        to_write = {}
+        to_write.update(args.__dict__)
+        to_write.update(result)
+        writer = csv.DictWriter(f, fieldnames=to_write.keys())
+        writer.writerow(to_write)
     # predictions = trainer.predict(ckpt_path="best", datamodule=datamodule)
     # print(predictions[0])
 

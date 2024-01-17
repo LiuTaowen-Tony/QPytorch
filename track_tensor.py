@@ -72,13 +72,14 @@ def instrument_terminal(
     stats[name] = module_stats
 
 
-def visualise(stats: Dict[str, Dict[str, float]], subnormal: bool = False) -> None:
+def visualise(stats: Dict[str, Dict[str, float]], subnormal: bool = False, dir="test.png") -> None:
     df = pd.DataFrame(stats)
     df = df.stack().to_frame("scale (log₂)").reset_index(names=["type", "op"])
-    plot(df, subnormal)
+    chart = plot(df, subnormal)
+    chart.save(dir)
 
 
-def plot(df: pd.DataFrame, subnormal: bool = False) -> None:
+def plot(df: pd.DataFrame, subnormal: bool = False):
     is_x_or_grad_x = (df["type"] == "x") | (df["type"] == "grad_x")
     op_order = df[df["type"] == "x"]["op"].tolist()
     colors = ["#6C8EBF", "#FF8000", "#5D8944", "#ED3434"]
@@ -147,8 +148,7 @@ def plot(df: pd.DataFrame, subnormal: bool = False) -> None:
         .configure_axis(labelFontSize=12, titleFontSize=16)
         .properties(width=500)
     )
-    combined_chart.to_json('test.json')
-    combined_chart.save("test.png")
+    return combined_chart
 
 
 def analyse_full_model(
@@ -158,10 +158,3 @@ def analyse_full_model(
     y = torch.sum(model(torch.randn((1, 3, 32, 32))))
     y.backward()
     visualise(stats, subnormal=True)
-
-stdt = torch.load(checkpoint_path, map_location=device)["state_dict"]
-# quant_funcs = make_quant_func(args)
-target_model = PreResNet(lambda : Id())
-load_state_dict_no_wrapper(target_model, stdt)
-
-analyse_full_model(target_model)

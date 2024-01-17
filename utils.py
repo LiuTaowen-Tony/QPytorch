@@ -4,6 +4,9 @@ from typing import Optional
 import torch.nn as nn
 
 class Id(nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__()
+
     def forward(self, x):
         return x
 
