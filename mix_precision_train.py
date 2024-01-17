@@ -21,6 +21,7 @@ import torch.nn.functional as F
 import argparse
 import lightning as L
 from utils import make_quant_func, Id
+import tensor_tracker
 
 
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -73,6 +74,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 args = parser.parse_args()
 
+from track_tensor import instrument
+
 
 class LitClassifier(LightningModule):
     def _apply_model_weights(self, model, quant_func):
@@ -98,6 +101,7 @@ class LitClassifier(LightningModule):
         if args.checkpoint_path:
             ckpt = torch.load(args.checkpoint_path)
             self.load_state_dict(ckpt["state_dict"])
+        self.stats = instrument(self.backbone)
         self._apply_model_weights(self.backbone, self.weight_quant)
         # self.backbone = torch.jit.trace(self.backbone, torch.rand(1, 3, 32, 32))
         self.automatic_optimization = False
@@ -198,18 +202,9 @@ def make_version_name(args):
         f"lr{args.learning_rate}"
         f"b{args.batch_size}"
         f"clip{args.clip}"
+        f"_norm{args.batchnorm}"
     )
 
-def track_grad_norm(args):
-    import tensor_tracker
-    model = LitClassifier(args)
-    datamodule = MyDataModule(args.batch_size)
-    datamodule = datamodule.train_dataloader()
-    batch = next(iter(datamodule))
-    with tensor_tracker.Tracker() as tracker:
-        model.train_step(batch, 0).backward()
-    print(tracker)
-    
 
 
 def cli_main():
