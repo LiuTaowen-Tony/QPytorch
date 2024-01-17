@@ -51,17 +51,20 @@ class Probe(nn.Module):
         super().__init__()
         self.module = module
 
+class fake_norm(nn.Module):
+    def forward(self, x):
+        return x
     
+expansion = 1
 
 class BasicBlock(nn.Module):
-    expansion = 1
 
-    def __init__(self, inplanes, planes, quant, stride=1, downsample=None):
+    def __init__(self,inplanes, planes, quant, stride=1, downsample=None, norm=nn.BatchNorm2d):
         super(BasicBlock, self).__init__()
-        self.bn1 = nn.BatchNorm2d(inplanes)
+        self.bn1 = norm(inplanes)
         self.relu = nn.ReLU()
         self.probe = Probe(conv3x3(inplanes, planes, stride))
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.bn2 = norm(planes)
         self.conv2 = conv3x3(planes, planes)
         self.downsample = downsample
         self.stride = stride
@@ -92,13 +95,14 @@ class BasicBlock(nn.Module):
     
 class PreResNet(nn.Module):
 
-    def __init__(self,quant, num_classes=10, depth=20):
+    def __init__(self,quant, num_classes=10, depth=20, norm=nn.BatchNorm2d):
 
         super(PreResNet, self).__init__()
         assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
         n = (depth - 2) // 6
 
-        block = BasicBlock
+        def block(*args):
+            return BasicBlock(*args, norm=norm)
 
         self.inplanes = 16
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1,
@@ -106,10 +110,10 @@ class PreResNet(nn.Module):
         self.layer1 = self._make_layer(block, 16, n, quant)
         self.layer2 = self._make_layer(block, 32, n, quant, stride=2)
         self.layer3 = self._make_layer(block, 64, n, quant, stride=2)
-        self.bn = nn.BatchNorm2d(64 * block.expansion)
+        self.bn = norm(64 * expansion)
         self.relu = nn.ReLU()
         self.avgpool = nn.AvgPool2d(8)
-        self.fc = nn.Linear(64 * block.expansion, num_classes)
+        self.fc = nn.Linear(64 * expansion, num_classes)
         self.quant = quant()
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -121,15 +125,15 @@ class PreResNet(nn.Module):
 
     def _make_layer(self, block, planes, blocks, quant, stride=1):
         downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
+        if stride != 1 or self.inplanes != planes * expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
+                nn.Conv2d(self.inplanes, planes * expansion,
                           kernel_size=1, stride=stride, bias=False),
             )
 
         layers = list()
         layers.append(block(self.inplanes, planes, quant , stride, downsample))
-        self.inplanes = planes * block.expansion
+        self.inplanes = planes * expansion
         for i in range(1, blocks):
             layers.append(block(self.inplanes, planes, quant))
 

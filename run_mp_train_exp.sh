@@ -8,6 +8,7 @@ clip=100000000000000
 for man_width in 3; do
 for loss_scale in 1 10 25 100 200 1000 2000 3000 5000 8000 16000 32000 64000 128000 256000 512000 1024000; do
 for batch_size in 64; do
+for batchnorm in batchnorm id; do
 for lr in 0.1; do
 for bk_exp_width in 4; do
 for fw_exp_width in 2; do
@@ -21,7 +22,7 @@ for round2 in stochastic nearest ; do
 		--gradient-ew $fw_exp_width \
 		--activation-ew $bk_exp_width \
 		--loss-scale $loss_scale \
-		--log-path results_new/f${fw_exp_width}_b${bk_exp_width}_log_${run}_clip \
+		--log-path results_new_batchnorm/f${fw_exp_width}_b${bk_exp_width}_log_${run}_clip \
 		--seed $run \
 		--epochs 200 \
 		--weight-round $round2 \
@@ -32,7 +33,9 @@ for round2 in stochastic nearest ; do
 		--momentum 0 \
 		--batch-size $batch_size \
 		--clip $clip \
-		--mix-precision True &
+		--batchnorm $batchnorm \
+		--mix-precision True & 
+
 done
 done
 	wait
@@ -42,3 +45,5 @@ done
 done
 done
 done 
+done
+
