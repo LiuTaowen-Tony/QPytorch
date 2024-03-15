@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Step 1: Read the CSV file
 df = pd.read_csv('result.csv')
@@ -15,7 +16,7 @@ df['group'] = df['activation_round'].astype(str) + ' x ' + df['batchnorm']
 
 # Plot each group
 for name, group in df.groupby('group'):
-    plt.plot(group['loss_scale'], group['test_loss'], label=name)
+    plt.scatter(np.log(group['loss_scale']), group['test_loss'], label=name)
 
 # Step 4: Customize the Plot
 plt.xlabel('Loss Scale')
